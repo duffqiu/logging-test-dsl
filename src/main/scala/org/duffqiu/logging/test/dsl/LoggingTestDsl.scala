@@ -1,16 +1,19 @@
 package org.duffqiu.logging.test.dsl
 
+import java.io.File
+
+import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.language.postfixOps
-import com.github.tototoshi.csv.DefaultCSVFormat
-import com.github.tototoshi.csv.CSVReader
-import java.io.File
-import org.duffqiu.logging.common.LineType
-import org.duffqiu.logging.common.FIRSTLINE
-import org.scalatest.Assertions
-import java.io.FileNotFoundException
-import org.duffqiu.logging.common.LASTLINE
+
 import org.duffqiu.logging.common.ANYLINE
+import org.duffqiu.logging.common.FIRSTLINE
+import org.duffqiu.logging.common.LASTLINE
+import org.duffqiu.logging.common.LineType
+import org.scalatest.Assertions
+
+import com.github.tototoshi.csv.CSVReader
+import com.github.tototoshi.csv.DefaultCSVFormat
 
 object LoggingTestDsl extends Assertions {
     type Value = String
@@ -44,15 +47,23 @@ object LoggingTestDsl extends Assertions {
         def and(value: Value) = (lwlty._1, lwlty._2, value)
         def fulfill(fun: Value2Result) = (lwlty._1, lwlty._2, fun)
         def and_fulfill(fun: Value2Result) = (lwlty._1, lwlty._2, fun)
-        def end = Unit
     }
 
     class CsvValueHelper(lwltyv: LoggingWithLineTypeValue) {
-        def at(pos: Position) = (lwltyv._1, lwltyv._2, lwltyv._3, pos)
+
+        def at(pos: Position) = {
+            verifyCsvLoggingWithVerificationFun(lwltyv._1, lwltyv._2, { value =>
+                {
+                    if (lwltyv._3.trim() != value.trim()) {
+                        fail("CSV value not matched, expect: " + lwltyv._3 + ", but get " + value)
+                    }
+                }
+            }, pos)
+        }
     }
 
     class CsvFulfillHelper(lwltyf: LoggingWithLineTypeFulFill) {
-        def at(pos: Position) = (lwltyf._1, lwltyf._2, lwltyf._3, pos)
+        def at(pos: Position) = verifyCsvLoggingWithVerificationFun(lwltyf._1, lwltyf._2, lwltyf._3, pos)
     }
 
     implicit def string2LoggingHelper(name: String) = new LoggingReader(name)
@@ -65,17 +76,18 @@ object LoggingTestDsl extends Assertions {
 
     implicit def withPos(lwltf: LoggingWithLineTypeFulFill) = new CsvFulfillHelper(lwltf)
 
-    implicit def verifyCsvLogging(t: (LoggingReader, LineType, Value, Position)) = {
-
+    def verifyCsvLoggingWithVerificationFun(t: (LoggingReader, LineType, Value2Result, Position)) = {
+        //        println("position: " + t._4)
         t match {
-            case (readerHelp, lt, value, pos) => {
+            case (readerHelp, lt, vf, pos) => {
                 val reader = readerHelp.reader
 
                 val stream = reader.toStream
+
                 lt match {
-                    case FIRSTLINE => verfiyCsvLine(stream.head, value, pos)
-                    case LASTLINE => verfiyCsvLine(stream.last, value, pos)
-                    case ANYLINE => stream.foreach(verfiyCsvLine(_, value, pos))
+                    case FIRSTLINE => vf(stream.head(pos).trim())
+                    case LASTLINE => vf(stream.last(pos).trim())
+                    case ANYLINE => stream.foreach(line => vf(line(pos).trim()))
                     case _ => fail("error line type")
                 }
 
@@ -85,38 +97,6 @@ object LoggingTestDsl extends Assertions {
         }
 
         new LineTypeHelper(t._1, t._2)
-    }
-
-    implicit def verifyCsvLoggingWithFulfill(t: (LoggingReader, LineType, Value2Result, Position)) = {
-
-        t match {
-            case (readerHelp, lt, f, pos) => {
-                val reader = readerHelp.reader
-
-                val stream = reader.toStream
-                lt match {
-                    case FIRSTLINE => custCsvLine(stream.head, f, pos)
-                    case LASTLINE => custCsvLine(stream.last, f, pos)
-                    case ANYLINE => stream.foreach(custCsvLine(_, f, pos))
-                    case _ => fail("error line type")
-                }
-
-                reader.close
-
-            }
-        }
-
-        new LineTypeHelper(t._1, t._2)
-    }
-
-    def verfiyCsvLine(line: List[String], value: Value, pos: Position): Unit = {
-        if (line(pos).trim() != value.trim()) {
-            fail("CSV value not matched, expect: " + value + ", but get " + line(pos))
-        }
-    }
-
-    def custCsvLine(line: List[String], f: Value2Result, pos: Position): Unit = {
-        f(line(pos).trim())
     }
 
 }
