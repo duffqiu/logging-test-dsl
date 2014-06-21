@@ -1,7 +1,6 @@
 package org.duffqiu.logging.test.dsl
 
 import scala.language.postfixOps
-
 import org.duffqiu.logging.common.ANYLINE
 import org.duffqiu.logging.common.FIRSTLINE
 import org.duffqiu.logging.common.LASTLINE
@@ -13,6 +12,7 @@ import org.scalatest.BeforeAndAfter
 import org.scalatest.FunSpec
 import org.scalatest.GivenWhenThen
 import org.scalatest.Matchers
+import org.scalatest.exceptions.TestFailedException
 
 class LoggingTestDslTest extends FunSpec with Matchers with BeforeAndAfter with GivenWhenThen {
     describe("Logging Test DSL Function Test") {
@@ -43,6 +43,13 @@ class LoggingTestDslTest extends FunSpec with Matchers with BeforeAndAfter with 
             "test.csv" in "./" with_delimiter ';' in FIRSTLINE fulfill { value => value should startWith("column") } at 2 and
                 "column2" at 1 and_fulfill { value => value should startWith("column") } at 0
 
+        }
+
+        it("should catch exception if the value is not matched") {
+            intercept[TestFailedException] {
+                "test.csv" in "./" with_delimiter ';' in FIRSTLINE fulfill { value => value should startWith("column") } at 2 and
+                    "column2" at 1 and_fulfill { value => value should startWith("xolumn") } at 0
+            }
         }
     }
 }
