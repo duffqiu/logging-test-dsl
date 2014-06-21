@@ -45,10 +45,17 @@ class LoggingTestDslTest extends FunSpec with Matchers with BeforeAndAfter with 
 
         }
 
-        it("should catch exception if the value is not matched") {
+        it("should catch custom verification fun exception if the value is not matched") {
             intercept[TestFailedException] {
                 "test.csv" in "./" with_delimiter ';' in FIRSTLINE fulfill { value => value should startWith("column") } at 2 and
                     "column2" at 1 and_fulfill { value => value should startWith("xolumn") } at 0
+            }
+        }
+
+        it("should catch value not matched") {
+            intercept[TestFailedException] {
+                "test.csv" in "./" with_delimiter ';' in FIRSTLINE fulfill { value => value should startWith("column") } at 2 and
+                    "xolumn2" at 1 and_fulfill { value => value should startWith("column") } at 0
             }
         }
     }
