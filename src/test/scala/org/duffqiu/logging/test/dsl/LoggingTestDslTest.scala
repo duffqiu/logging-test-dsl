@@ -13,6 +13,7 @@ import org.scalatest.FunSpec
 import org.scalatest.GivenWhenThen
 import org.scalatest.Matchers
 import org.scalatest.exceptions.TestFailedException
+import org.duffqiu.logging.common.LinePosition.WHOLELINE
 
 class LoggingTestDslTest extends FunSpec with Matchers with BeforeAndAfter with GivenWhenThen {
     describe("Logging Test DSL Function Test") {
@@ -57,6 +58,16 @@ class LoggingTestDslTest extends FunSpec with Matchers with BeforeAndAfter with 
                 "test.csv" in "./" with_delimiter ';' in FIRSTLINE fulfill { value => value should startWith("column") } at 2 and
                     "xolumn2" at 1 and_fulfill { value => value should startWith("column") } at 0
             }
+        }
+
+        it("should read the whole line to test") {
+
+            ("test.csv" in "./" with_delimiter ';' in FIRSTLINE
+
+                fulfill { _ should fullyMatch regex ("""^([\s\S][^;]*);([\s\S][^;]*);([\s\S][^;]*)""".r) } at WHOLELINE
+
+                and_fulfill { _ should include("column") } at WHOLELINE) and "column2" at 1
+
         }
     }
 }

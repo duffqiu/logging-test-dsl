@@ -2,13 +2,14 @@ package org.duffqiu.logging.test.dsl
 
 import java.io.File
 
-import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.language.postfixOps
 
 import org.duffqiu.logging.common.ANYLINE
 import org.duffqiu.logging.common.FIRSTLINE
 import org.duffqiu.logging.common.LASTLINE
+import org.duffqiu.logging.common.LinePosition
+import org.duffqiu.logging.common.LinePosition.WHOLELINE
 import org.duffqiu.logging.common.LineType
 import org.scalatest.Assertions
 
@@ -17,14 +18,14 @@ import com.github.tototoshi.csv.DefaultCSVFormat
 
 object LoggingTestDsl extends Assertions {
     type Value = String
-    type Position = Int
+    type Position = LinePosition
     type Result = Unit
     type LoggingWithLineType = (LoggingReader, LineType)
     type LoggingWithLineTypeValue = (LoggingReader, LineType, Value)
     type Value2Result = (Value => Result)
     type LoggingWithLineTypeFulFill = (LoggingReader, LineType, Value2Result)
 
-    class LoggingReader(val name: String, val path: String = "./", delimiter: Char = ',') { out =>
+    class LoggingReader(val name: String, val path: String = "./", val delimiter: Char = ',') { out =>
 
         implicit object MyFormat extends DefaultCSVFormat {
             override val delimiter = out.delimiter
@@ -78,16 +79,24 @@ object LoggingTestDsl extends Assertions {
 
     def verifyCsvLoggingWithVerificationFun(t: (LoggingReader, LineType, Value2Result, Position)) = {
         //        println("position: " + t._4)
+
         t match {
             case (readerHelp, lt, vf, pos) => {
-                val reader = readerHelp.reader
 
+                val reader = readerHelp.reader
                 val stream = reader.toStream
 
+                def fetchValueFromLine(line: List[String]): String = {
+                    pos match {
+                        case LinePosition(WHOLELINE) => line.mkString(reader.delimiter.toString).trim()
+                        case _ => line(pos.pos).trim()
+                    }
+                }
+
                 lt match {
-                    case FIRSTLINE => vf(stream.head(pos).trim())
-                    case LASTLINE => vf(stream.last(pos).trim())
-                    case ANYLINE => stream.foreach(line => vf(line(pos).trim()))
+                    case FIRSTLINE => vf(fetchValueFromLine(stream.head))
+                    case LASTLINE => vf(fetchValueFromLine(stream.last))
+                    case ANYLINE => stream.foreach(line => vf(fetchValueFromLine(line)))
                     case _ => fail("error line type")
                 }
 
