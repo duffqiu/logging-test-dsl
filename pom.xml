@@ -4,7 +4,7 @@
 
 	<groupId>org.duffqiu</groupId>
 	<artifactId>loggin-test-dsl</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
 	<description>Logging Test DSL</description>
 	<properties>
 		<scala.tools.version>2.10</scala.tools.version>
