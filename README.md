@@ -1,6 +1,8 @@
 logging-test-dsl
 ================
 
+[![Build Status](https://travis-ci.org/duffqiu/logging-test-dsl.svg?branch=develop)](https://travis-ci.org/duffqiu/logging-test-dsl)
+
 It is a dsl for test logging file(scala)
 
 - It is very simpel to use the DSL to test CSV logging file
