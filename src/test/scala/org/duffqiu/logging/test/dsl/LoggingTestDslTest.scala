@@ -63,10 +63,8 @@ class LoggingTestDslTest extends FunSpec with Matchers with BeforeAndAfter with 
         it("should read the whole line to test") {
 
             ("test.csv" in "./" with_delimiter ';' in FIRSTLINE
-
                 fulfill { _ should fullyMatch regex ("""^([\s\S][^;]*);([\s\S][^;]*);([\s\S][^;]*)""".r) } at WHOLELINE
-
-                and_fulfill { _ should include("column") } at WHOLELINE) and "column2" at 1
+                and_fulfill { _ should include("column") } at WHOLELINE and "column2" at 1)
 
         }
     }
