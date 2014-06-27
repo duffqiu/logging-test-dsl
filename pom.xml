@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.github.duffqiu</groupId>
-	<artifactId>loggin-test-dsl_${scala.tools.version}</artifactId>
+	<artifactId>loggin-test-dsl_2.10</artifactId>
 	<version>0.0.2</version>
 	<description>Logging Test DSL</description>
 	<properties>
