@@ -20,3 +20,8 @@ It is a dsl for test logging file(scala)
 ##0.0.1
 
    * First release
+
+##0.0.2
+   
+   * update scalatest version to 2.2.0
+   * change group id
