@@ -34,7 +34,7 @@ object LoggingTestDsl extends Assertions {
         def in(newPath: String) = new LoggingReader(name, newPath)
         def with_delimiter(newDelimiter: Char) = new LoggingReader(name, path, newDelimiter)
 
-        def reader: CSVReader = CSVReader.open(new File(path + name))
+        def open: CSVReader = CSVReader.open(new File(path + name))
 
     }
 
@@ -77,35 +77,28 @@ object LoggingTestDsl extends Assertions {
 
     implicit def withPos(lwltf: LoggingWithLineTypeFulFill) = new CsvFulfillHelper(lwltf)
 
-    def verifyCsvLoggingWithVerificationFun(t: (LoggingReader, LineType, Value2Result, Position)) = {
-        //        println("position: " + t._4)
+    private[this] def verifyCsvLoggingWithVerificationFun(loggingReader: LoggingReader, lt: LineType, vf: Value2Result, pos: Position) = {
 
-        t match {
-            case (readerHelp, lt, vf, pos) => {
+        val reader = loggingReader.open
+        val stream = reader.toStream
 
-                val reader = readerHelp.reader
-                val stream = reader.toStream
-
-                def fetchValueFromLine(line: List[String]): String = {
-                    pos match {
-                        case LinePosition(WHOLELINE) => line.mkString(reader.delimiter.toString).trim()
-                        case _ => line(pos.pos).trim()
-                    }
-                }
-
-                lt match {
-                    case FIRSTLINE => vf(fetchValueFromLine(stream.head))
-                    case LASTLINE => vf(fetchValueFromLine(stream.last))
-                    case ANYLINE => stream.foreach(line => vf(fetchValueFromLine(line)))
-                    case _ => fail("error line type")
-                }
-
-                reader.close
-
+        def fetchValueFromLine(line: List[String]): String = {
+            pos match {
+                case LinePosition(WHOLELINE) => line.mkString(reader.delimiter.toString).trim()
+                case _ => line(pos.pos).trim()
             }
         }
 
-        new LineTypeHelper(t._1, t._2)
+        lt match {
+            case FIRSTLINE => vf(fetchValueFromLine(stream.head))
+            case LASTLINE => vf(fetchValueFromLine(stream.last))
+            case ANYLINE => stream.foreach(line => vf(fetchValueFromLine(line)))
+            case _ => fail("error line type")
+        }
+
+        reader.close
+
+        new LineTypeHelper(loggingReader, lt)
     }
 
 }
