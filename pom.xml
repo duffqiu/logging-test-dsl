@@ -1,11 +1,33 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-
+	
 	<groupId>com.github.duffqiu</groupId>
 	<artifactId>loggin-test-dsl_2.10</artifactId>
 	<version>0.0.2</version>
+	<packaging>jar</packaging>
+	<name>${project.groupId}:${project.artifactId}</name>
 	<description>Logging Test DSL</description>
+	<url>https://github.com/duffqiu/logging-test-dsl/</url>
+	<licenses>
+	  <license>
+	    <name>The Apache Software License, Version 2.0</name>
+	    <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+	  </license>
+	</licenses>
+	<developers>
+		<developer>
+			<name>Duff Qiu</name>
+			<email>duffqiu@gmail.com</email>
+			<organization>DuffQiu.Org</organization>
+			<organizationUrl>https://www.github.com/duffqiu</organizationUrl>
+		</developer>
+	</developers>	
+	<scm>
+	  <connection>scm:git:git@github.com:duffqiu/logging-test-dsl</connection>
+	  <developerConnection>scm:git:git@github.com:duffqiu/logging-test-dsl</developerConnection>
+	  <url>git@github.com:duffqiu/logging-test-dsl.git</url>
+	</scm>	
 	<properties>
 		<scala.tools.version>2.10</scala.tools.version>
 		<scala.version>2.10.4</scala.version>
