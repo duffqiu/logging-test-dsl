@@ -5,6 +5,7 @@ scala:
 jdk:
   - oraclejdk7
   - openjdk7
+install: mvn install -DskipTests=true -Dgpg.skip=true  
 branches:
   only:
     - develop
