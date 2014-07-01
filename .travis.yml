@@ -5,7 +5,7 @@ scala:
 jdk:
   - oraclejdk7
   - openjdk7
-install: mvn install -DskipTests=true -Dgpg.skip=true  
+install: mvn clean install -DskipTests=true -Dgpg.skip=true -Dmaven.javadoc.skip=true
 branches:
   only:
     - develop
