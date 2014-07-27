@@ -24,6 +24,7 @@ object LoggingTestDsl extends Assertions {
     type LoggingWithLineTypeValue = (LoggingReader, LineType, Value)
     type Value2Result = (Value => Result)
     type LoggingWithLineTypeFulFill = (LoggingReader, LineType, Value2Result)
+    type LoggingWithLineTypeFulFillAtPosition = (LoggingReader, LineType, Value2Result, Position)
 
     class LoggingReader(val name: String, val path: String = "./", val delimiter: Char = ',') { out =>
 
@@ -43,28 +44,57 @@ object LoggingTestDsl extends Assertions {
 
     }
 
-    class LineTypeHelper(lwlty: LoggingWithLineType) {
-        def have(value: Value) = (lwlty._1, lwlty._2, value)
-        def and(value: Value) = (lwlty._1, lwlty._2, value)
-        def fulfill(fun: Value2Result) = (lwlty._1, lwlty._2, fun)
-        def and_fulfill(fun: Value2Result) = (lwlty._1, lwlty._2, fun)
-    }
+    class LineTypeHelper(lwlty: LoggingWithLineType, fulFillAtPostionList: List[LoggingWithLineTypeFulFillAtPosition] = Nil) {
 
-    class CsvValueHelper(lwltyv: LoggingWithLineTypeValue) {
+        def have(value: Value) = new CsvChecker((lwlty._1, lwlty._2, (checkValue: Value) =>
+            {
+                if (checkValue.trim() != value.trim()) {
+                    fail("CSV value not matched, expect: " + checkValue + ", but get " + value)
+                }
+            }), fulFillAtPostionList)
 
-        def at(pos: Position) = {
-            verifyCsvLoggingWithVerificationFun(lwltyv._1, lwltyv._2, { value =>
-                {
-                    if (lwltyv._3.trim() != value.trim()) {
-                        fail("CSV value not matched, expect: " + lwltyv._3 + ", but get " + value)
+        def and(value: Value) = have(value)
+
+        def fulfill(fun: Value2Result) = new CsvChecker((lwlty._1, lwlty._2, fun), fulFillAtPostionList)
+        def and_fulfill(fun: Value2Result) = fulfill(fun)
+
+        def shouldOk(): Unit = {
+
+            val reader = lwlty._1.open
+            val stream = reader.toStream
+
+            fulFillAtPostionList.foreach {
+                case (reader, lineType, value2Result, pos) => {
+
+                    def fetchValueFromLine(line: List[String]): String = {
+                        pos match {
+                            case LinePosition(WHOLELINE) => line.mkString(reader.delimiter.toString).trim()
+                            case _ => line(pos.pos).trim()
+                        }
+
+                    }
+
+                    lineType match {
+                        case FIRSTLINE => value2Result(fetchValueFromLine(stream.head))
+                        case LASTLINE => value2Result(fetchValueFromLine(stream.last))
+                        case ANYLINE => stream.foreach(line => value2Result(fetchValueFromLine(line)))
+                        case _ => fail("error line type")
                     }
                 }
-            }, pos)
+
+                case _ => fail("error data in check list")
+            }
+
+            reader.close
         }
     }
 
-    class CsvFulfillHelper(lwltyf: LoggingWithLineTypeFulFill) {
-        def at(pos: Position) = verifyCsvLoggingWithVerificationFun(lwltyf._1, lwltyf._2, lwltyf._3, pos)
+    class CsvChecker(lwltyf: LoggingWithLineTypeFulFill, fulFillAtPostionList: List[LoggingWithLineTypeFulFillAtPosition]) {
+
+        def at(pos: Position) = {
+            val newValueAtPosList = (lwltyf._1, lwltyf._2, lwltyf._3, pos) :: fulFillAtPostionList
+            new LineTypeHelper((lwltyf._1, lwltyf._2), newValueAtPosList)
+        }
     }
 
     implicit def string2LoggingHelper(name: String) = new LoggingReader(name)
@@ -72,33 +102,5 @@ object LoggingTestDsl extends Assertions {
     implicit def withLineType(str2Reader: LoggingReader) = new ReaderHelper(str2Reader)
 
     implicit def withCsvValue(lwlty: LoggingWithLineType) = new LineTypeHelper(lwlty)
-
-    implicit def withPos(lwltv: LoggingWithLineTypeValue) = new CsvValueHelper(lwltv)
-
-    implicit def withPos(lwltf: LoggingWithLineTypeFulFill) = new CsvFulfillHelper(lwltf)
-
-    private[this] def verifyCsvLoggingWithVerificationFun(loggingReader: LoggingReader, lt: LineType, vf: Value2Result, pos: Position) = {
-
-        val reader = loggingReader.open
-        val stream = reader.toStream
-
-        def fetchValueFromLine(line: List[String]): String = {
-            pos match {
-                case LinePosition(WHOLELINE) => line.mkString(reader.delimiter.toString).trim()
-                case _ => line(pos.pos).trim()
-            }
-        }
-
-        lt match {
-            case FIRSTLINE => vf(fetchValueFromLine(stream.head))
-            case LASTLINE => vf(fetchValueFromLine(stream.last))
-            case ANYLINE => stream.foreach(line => vf(fetchValueFromLine(line)))
-            case _ => fail("error line type")
-        }
-
-        reader.close
-
-        new LineTypeHelper(loggingReader, lt)
-    }
 
 }
