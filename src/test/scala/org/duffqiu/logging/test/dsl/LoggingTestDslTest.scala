@@ -17,19 +17,6 @@ import org.duffqiu.logging.common.LinePosition.WHOLELINE
 class LoggingTestDslTest extends FunSpec with Matchers with BeforeAndAfter with GivenWhenThen {
     describe("Logging Test DSL Function Test") {
 
-        it("should read file successfully") {
-            val reader = "test.csv" in "./" with_delimiter ';' open
-
-            val line = reader.readNext
-
-            line match {
-                case Some(data) => data(1) shouldBe "column2"
-                case None => fail("can't read the data from file")
-            }
-
-            reader.close
-        }
-
         it("should be able to use logging test dsl") {
             "test.csv" in "./" with_delimiter ';' in FIRSTLINE have "column3" at 2 and
                 "column2" at 1 and "column1" at 0 shouldOk

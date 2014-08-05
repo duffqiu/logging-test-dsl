@@ -4,10 +4,10 @@ import scala.language.implicitConversions
 
 /**
  * @author DuffQiu
- * 
+ *
  *
  */
-case class LinePosition(pos: Int)
+case class LinePosition(at: Int)
 
 object LinePosition {
 

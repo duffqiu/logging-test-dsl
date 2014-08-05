@@ -3,7 +3,7 @@ scala:
   - "2.10.4"
   - "2.11.1"
 jdk:
-  - oraclejdk6
+  - openjdk6
   - oraclejdk7
   - openjdk7
 install: mvn clean install -DskipTests=true -Dgpg.skip=true -Dmaven.javadoc.skip=true

@@ -1,10 +1,8 @@
 package org.duffqiu.logging.test.dsl
 
 import java.io.File
-
 import scala.language.implicitConversions
 import scala.language.postfixOps
-
 import org.duffqiu.logging.common.ANYLINE
 import org.duffqiu.logging.common.FIRSTLINE
 import org.duffqiu.logging.common.LASTLINE
@@ -12,9 +10,7 @@ import org.duffqiu.logging.common.LinePosition
 import org.duffqiu.logging.common.LinePosition.WHOLELINE
 import org.duffqiu.logging.common.LineType
 import org.scalatest.Assertions
-
-import com.github.tototoshi.csv.CSVReader
-import com.github.tototoshi.csv.DefaultCSVFormat
+import com.bizo.mighty.csv.{ CSVReader, CSVReaderSettings }
 
 object LoggingTestDsl extends Assertions {
     type Value = String
@@ -26,16 +22,14 @@ object LoggingTestDsl extends Assertions {
     type LoggingWithLineTypeFulFill = (LoggingReader, LineType, Value2Result)
     type LoggingWithLineTypeFulFillAtPosition = (LoggingReader, LineType, Value2Result, Position)
 
-    class LoggingReader(val name: String, val path: String = "./", val delimiter: Char = ',') { out =>
+    class LoggingReader(val name: String, val path: String = "./", val delimiter: Char = ',') {
 
-        implicit object MyFormat extends DefaultCSVFormat {
-            override val delimiter = out.delimiter
-        }
+        implicit val settings = CSVReaderSettings.Standard.copy(separator = delimiter)
 
         def in(newPath: String) = new LoggingReader(name, newPath)
         def with_delimiter(newDelimiter: Char) = new LoggingReader(name, path, newDelimiter)
 
-        def open: CSVReader = CSVReader.open(new File(path + name))
+        def open = CSVReader(path + name)
 
     }
 
@@ -66,10 +60,10 @@ object LoggingTestDsl extends Assertions {
             fulFillAtPostionList.foreach {
                 case (reader, lineType, value2Result, pos) => {
 
-                    def fetchValueFromLine(line: List[String]): String = {
+                    def fetchValueFromLine(line: Array[String]): String = {
                         pos match {
                             case LinePosition(WHOLELINE) => line.mkString(reader.delimiter.toString).trim()
-                            case _ => line(pos.pos).trim()
+                            case _ => line(pos.at).trim()
                         }
 
                     }
