@@ -1,6 +1,8 @@
 logging-test-dsl
 ================
 
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/duffqiu/logging-test-dsl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 [![Build Status](https://travis-ci.org/duffqiu/logging-test-dsl.svg?branch=develop)](https://travis-ci.org/duffqiu/logging-test-dsl)
 
 It is a dsl for test logging file(scala)
